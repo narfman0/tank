@@ -6,7 +6,7 @@ mod tts;
 mod wake_word;
 
 use anyhow::{Context, Result};
-use cpal::traits::{DeviceTrait, HostTrait};
+use cpal::traits::DeviceTrait;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
@@ -172,7 +172,7 @@ fn capture_short_chunk(device: &cpal::Device) -> Result<Vec<i16>> {
     let sample_rate = config.sample_rate().0;
     let channels = config.channels() as usize;
     // 30ms worth of samples
-    let chunk_size = (sample_rate as usize * 30) / 1000;
+    let _chunk_size = (sample_rate as usize * 30) / 1000;
 
     let buf: Arc<Mutex<Vec<i16>>> = Arc::new(Mutex::new(Vec::new()));
     let buf_clone = buf.clone();

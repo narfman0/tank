@@ -1,0 +1,11 @@
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/deps/eyeball-a4f5af0da7624c98.d: /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/lib.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/lock.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/read_guard.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/shared.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/state.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/subscriber.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/unique.rs
+
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/deps/libeyeball-a4f5af0da7624c98.rmeta: /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/lib.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/lock.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/read_guard.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/shared.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/state.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/subscriber.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/unique.rs
+
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/lib.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/lock.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/read_guard.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/shared.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/state.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/subscriber.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/eyeball-0.8.8/src/unique.rs:

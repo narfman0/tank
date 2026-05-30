@@ -1,0 +1,13 @@
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/whisper.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/edit_cache.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/rebuild_cache.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/list_install_components.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/install.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/install/local.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/CMakeFiles/install/strip.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/bindings/CMakeFiles/edit_cache.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/bindings/CMakeFiles/rebuild_cache.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/bindings/CMakeFiles/list_install_components.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/bindings/CMakeFiles/install.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/bindings/CMakeFiles/install/local.dir
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/build/bindings/CMakeFiles/install/strip.dir

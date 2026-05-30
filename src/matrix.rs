@@ -20,9 +20,8 @@ pub struct MatrixVoiceClient {
 
 impl MatrixVoiceClient {
     pub async fn new(config: Arc<Config>, store_path: &Path) -> Result<Self> {
-        let homeserver = config.matrix.homeserver.parse()?;
         let client = Client::builder()
-            .homeserver_url(homeserver)
+            .homeserver_url(&config.matrix.homeserver)
             .sqlite_store(store_path, None)
             .build()
             .await
@@ -69,12 +68,12 @@ impl MatrixVoiceClient {
     async fn restore_session(&self, session: &Session) -> Result<()> {
         use matrix_sdk::matrix_auth::MatrixSession;
         use matrix_sdk::SessionMeta;
-        use matrix_sdk::ruma::{OwnedDeviceId, OwnedUserId};
+        use matrix_sdk::ruma::OwnedUserId;
 
         let matrix_session = MatrixSession {
             meta: SessionMeta {
                 user_id: session.user_id.parse::<OwnedUserId>()?,
-                device_id: session.device_id.parse::<OwnedDeviceId>()?,
+                device_id: session.device_id.as_str().into(),
             },
             tokens: matrix_sdk::matrix_auth::MatrixSessionTokens {
                 access_token: session.access_token.clone(),

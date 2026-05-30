@@ -3,7 +3,6 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Host, SampleFormat, StreamConfig};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tokio::sync::mpsc;
 
 pub struct AudioCapture {
     host: Host,
@@ -133,7 +132,7 @@ fn resample_to_16k(samples: &[f32], src_rate: u32) -> Vec<f32> {
         .collect()
 }
 
-pub fn play_audio_file(path: &str, device_name: &str) -> Result<()> {
+pub fn play_audio_file(path: &str, _device_name: &str) -> Result<()> {
     use rodio::{Decoder, OutputStream, Sink};
     use std::fs::File;
     use std::io::BufReader;

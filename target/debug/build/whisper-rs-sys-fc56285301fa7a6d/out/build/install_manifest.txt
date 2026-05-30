@@ -1,0 +1,3 @@
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/lib/static/libwhisper.a
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/include/ggml.h
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/whisper-rs-sys-fc56285301fa7a6d/out/include/whisper.h

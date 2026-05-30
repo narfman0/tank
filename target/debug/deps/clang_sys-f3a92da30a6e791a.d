@@ -1,0 +1,14 @@
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/deps/clang_sys-f3a92da30a6e791a.d: /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/lib.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/support.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/link.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/macros.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/common.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/dynamic.rs
+
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/deps/libclang_sys-f3a92da30a6e791a.rlib: /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/lib.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/support.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/link.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/macros.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/common.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/dynamic.rs
+
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/deps/libclang_sys-f3a92da30a6e791a.rmeta: /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/lib.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/support.rs /home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/link.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/macros.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/common.rs /home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/dynamic.rs
+
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/lib.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/support.rs:
+/home/narfman0/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clang-sys-1.8.1/src/link.rs:
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/macros.rs:
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/common.rs:
+/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out/dynamic.rs:
+
+# env-dep:OUT_DIR=/home/narfman0/.openclaw/workspace/matrixvoice/target/debug/build/clang-sys-716e49c8fb9ddd7a/out
