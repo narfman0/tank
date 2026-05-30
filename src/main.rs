@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("matrixvoice=info".parse()?),
+                .add_directive("tank=info".parse()?),
         )
         .init();
 
@@ -99,7 +99,7 @@ async fn main() -> Result<()> {
     // TTS engine
     let tts = tts::TtsEngine::new(config.tts.clone());
 
-    info!("matrixvoice ready, listening for wake word...");
+    info!("tank ready, listening for wake word...");
 
     // Main loop
     loop {

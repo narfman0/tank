@@ -51,7 +51,7 @@ impl MatrixVoiceClient {
         self.client
             .matrix_auth()
             .login_username(&self.config.matrix.username, &self.config.matrix.password)
-            .initial_device_display_name("matrixvoice")
+            .initial_device_display_name("tank")
             .send()
             .await
             .context("password login failed")?;

@@ -1,10 +1,10 @@
 [package]
-name = "matrixvoice"
+name = "tank"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "matrixvoice"
+name = "tank"
 path = "src/main.rs"
 
 [dependencies]
