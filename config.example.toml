@@ -1,0 +1,28 @@
+[matrix]
+homeserver = "https://matrix.example.com"
+username = "@voicebot:example.com"
+password = "secret"          # only used for initial login
+session_file = "session.json" # persisted after first login
+
+[[matrix.rooms]]
+id = "!roomid:example.com"
+listen = true   # receive TTS responses from this room
+send = true     # send STT messages to this room
+
+[audio]
+input_device = "default"
+output_device = "default"
+wake_word_model = "hey_roger.rpw"  # rustpotter model file
+
+[stt]
+model = "base.en"          # whisper model name
+model_path = "models/"
+
+[tts]
+provider = "piper"          # "piper" or "elevenlabs"
+piper_binary = "/usr/bin/piper"
+piper_voice = "en_US-ryan-medium.onnx"
+
+[tts.elevenlabs]
+api_key = ""
+voice_id = ""
