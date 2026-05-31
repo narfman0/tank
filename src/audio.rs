@@ -132,12 +132,23 @@ fn resample_to_16k(samples: &[f32], src_rate: u32) -> Vec<f32> {
         .collect()
 }
 
-pub fn play_audio_file(path: &str, _device_name: &str) -> Result<()> {
+pub fn play_audio_file(path: &str, device_name: &str) -> Result<()> {
+    use cpal::traits::{DeviceTrait, HostTrait};
     use rodio::{Decoder, OutputStream, Sink};
     use std::fs::File;
     use std::io::BufReader;
 
-    let (_stream, stream_handle) = OutputStream::try_default()?;
+    let host = cpal::default_host();
+    let device = if device_name == "default" {
+        host.default_output_device()
+            .ok_or_else(|| anyhow::anyhow!("no default output device"))?
+    } else {
+        host.output_devices()?
+            .find(|d| d.name().map(|n| n == device_name).unwrap_or(false))
+            .ok_or_else(|| anyhow::anyhow!("output device '{}' not found", device_name))?
+    };
+
+    let (_stream, stream_handle) = OutputStream::try_from_device(&device)?;
     let sink = Sink::try_new(&stream_handle)?;
     let file = BufReader::new(File::open(path)?);
     let source = Decoder::new(file)?;

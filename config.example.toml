@@ -17,6 +17,7 @@ wake_word_model = "hey_roger.rpw"  # rustpotter model file
 [stt]
 model = "base.en"          # whisper model name
 model_path = "models/"
+# server_url = "http://192.168.1.100:8080"  # optional: offload whisper to a remote server (saves RAM on Pi)
 
 [tts]
 provider = "piper"          # "piper" or "elevenlabs"

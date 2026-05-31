@@ -42,6 +42,7 @@ pub struct AudioConfig {
 pub struct SttConfig {
     pub model: String,
     pub model_path: String,
+    pub server_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use cpal::traits::{DeviceTrait, HostTrait};
 use rodio::{Decoder, OutputStream, Sink};
 use std::io::BufReader;
 use std::process::Command;
@@ -8,11 +9,15 @@ use crate::config::TtsConfig;
 
 pub struct TtsEngine {
     config: TtsConfig,
+    output_device: String,
 }
 
 impl TtsEngine {
-    pub fn new(config: TtsConfig) -> Self {
-        Self { config }
+    pub fn new(config: TtsConfig, output_device: String) -> Self {
+        Self {
+            config,
+            output_device,
+        }
     }
 
     pub async fn speak(&self, text: &str) -> Result<()> {
@@ -59,7 +64,7 @@ impl TtsEngine {
             anyhow::bail!("piper exited with status {}", status);
         }
 
-        play_wav_file(&output_path)?;
+        play_wav_file(&output_path, &self.output_device)?;
         Ok(())
     }
 
@@ -94,13 +99,26 @@ impl TtsEngine {
         let bytes = resp.bytes().await?;
         let tmp = NamedTempFile::new()?;
         std::fs::write(tmp.path(), &bytes)?;
-        play_wav_file(tmp.path().to_str().unwrap())?;
+        play_wav_file(tmp.path().to_str().unwrap(), &self.output_device)?;
         Ok(())
     }
 }
 
-fn play_wav_file(path: &str) -> Result<()> {
-    let (_stream, stream_handle) = OutputStream::try_default()?;
+fn resolve_output_device(name: &str) -> Result<cpal::Device> {
+    let host = cpal::default_host();
+    if name == "default" {
+        host.default_output_device()
+            .ok_or_else(|| anyhow::anyhow!("no default output device"))
+    } else {
+        host.output_devices()?
+            .find(|d| d.name().map(|n| n == name).unwrap_or(false))
+            .ok_or_else(|| anyhow::anyhow!("output device '{}' not found", name))
+    }
+}
+
+fn play_wav_file(path: &str, device_name: &str) -> Result<()> {
+    let device = resolve_output_device(device_name)?;
+    let (_stream, stream_handle) = OutputStream::try_from_device(&device)?;
     let sink = Sink::try_new(&stream_handle)?;
     let file = BufReader::new(std::fs::File::open(path)?);
     let source = Decoder::new(file)?;

@@ -93,11 +93,10 @@ async fn main() -> Result<()> {
         .context("failed to load wake word model")?;
 
     // STT engine
-    let model_path = PathBuf::from(&config.stt.model_path).join(format!("{}.bin", config.stt.model));
-    let stt = stt::SttEngine::new(&model_path).context("failed to load whisper model")?;
+    let stt = stt::SttEngine::new(&config.stt).context("failed to initialize STT engine")?;
 
     // TTS engine
-    let tts = tts::TtsEngine::new(config.tts.clone());
+    let tts = tts::TtsEngine::new(config.tts.clone(), config.audio.output_device.clone());
 
     info!("tank ready, listening for wake word...");
 
