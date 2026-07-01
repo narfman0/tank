@@ -14,42 +14,72 @@ pub struct TtsEngine {
 
 impl TtsEngine {
     pub fn new(config: TtsConfig, output_device: String) -> Self {
-        Self {
-            config,
-            output_device,
-        }
+        Self { config, output_device }
     }
 
     pub async fn speak(&self, text: &str) -> Result<()> {
         match self.config.provider.as_str() {
+            "speaches" => {
+                match self.speak_speaches(text).await {
+                    Ok(()) => Ok(()),
+                    Err(e) => {
+                        if self.config.local_fallback {
+                            tracing::warn!("speaches TTS failed ({}), using piper fallback", e);
+                            self.speak_piper(text)
+                        } else {
+                            Err(e)
+                        }
+                    }
+                }
+            }
             "piper" => self.speak_piper(text),
             "elevenlabs" => self.speak_elevenlabs(text).await,
             other => anyhow::bail!("unknown TTS provider: {}", other),
         }
     }
 
-    fn speak_piper(&self, text: &str) -> Result<()> {
-        let binary = self
+    async fn speak_speaches(&self, text: &str) -> Result<()> {
+        let url = self
             .config
-            .piper_binary
+            .server_url
             .as_deref()
-            .unwrap_or("/usr/bin/piper");
-        let voice = self
-            .config
-            .piper_voice
-            .as_deref()
-            .unwrap_or("en_US-ryan-medium.onnx");
+            .ok_or_else(|| anyhow::anyhow!("speaches TTS requires [tts] server_url"))?;
 
-        let output = NamedTempFile::new()?.into_temp_path();
+        let endpoint = format!("{}/v1/audio/speech", url.trim_end_matches('/'));
+        let client = reqwest::Client::new();
+
+        let resp = client
+            .post(&endpoint)
+            .json(&serde_json::json!({
+                "model": self.config.server_model,
+                "input": text,
+                "voice": self.config.server_voice,
+                "response_format": "mp3"
+            }))
+            .timeout(std::time::Duration::from_secs(30))
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            anyhow::bail!("speaches TTS error: {}", resp.status());
+        }
+
+        let bytes = resp.bytes().await?;
+        let tmp = NamedTempFile::with_suffix(".mp3")?;
+        std::fs::write(tmp.path(), &bytes)?;
+        play_audio_file(tmp.path().to_str().unwrap(), &self.output_device)?;
+        Ok(())
+    }
+
+    fn speak_piper(&self, text: &str) -> Result<()> {
+        let binary = self.config.piper_binary.as_deref().unwrap_or("/usr/bin/piper");
+        let voice = self.config.piper_voice.as_deref().unwrap_or("en_US-ryan-medium.onnx");
+
+        let output = NamedTempFile::with_suffix(".wav")?.into_temp_path();
         let output_path = output.to_str().unwrap().to_string();
 
         let status = Command::new(binary)
-            .args([
-                "--model",
-                voice,
-                "--output_file",
-                &output_path,
-            ])
+            .args(["--model", voice, "--output_file", &output_path])
             .stdin(std::process::Stdio::piped())
             .spawn()
             .and_then(|mut child| {
@@ -64,7 +94,7 @@ impl TtsEngine {
             anyhow::bail!("piper exited with status {}", status);
         }
 
-        play_wav_file(&output_path, &self.output_device)?;
+        play_audio_file(&output_path, &self.output_device)?;
         Ok(())
     }
 
@@ -97,9 +127,9 @@ impl TtsEngine {
         }
 
         let bytes = resp.bytes().await?;
-        let tmp = NamedTempFile::new()?;
+        let tmp = NamedTempFile::with_suffix(".mp3")?;
         std::fs::write(tmp.path(), &bytes)?;
-        play_wav_file(tmp.path().to_str().unwrap(), &self.output_device)?;
+        play_audio_file(tmp.path().to_str().unwrap(), &self.output_device)?;
         Ok(())
     }
 }
@@ -116,7 +146,7 @@ fn resolve_output_device(name: &str) -> Result<cpal::Device> {
     }
 }
 
-fn play_wav_file(path: &str, device_name: &str) -> Result<()> {
+fn play_audio_file(path: &str, device_name: &str) -> Result<()> {
     let device = resolve_output_device(device_name)?;
     let (_stream, stream_handle) = OutputStream::try_from_device(&device)?;
     let sink = Sink::try_new(&stream_handle)?;

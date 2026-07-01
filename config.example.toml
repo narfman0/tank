@@ -1,29 +1,44 @@
 [matrix]
 homeserver = "https://matrix.example.com"
 username = "@voicebot:example.com"
-password = "secret"          # only used for initial login
+password = "secret"           # only used for initial login
 session_file = "session.json" # persisted after first login
 
 [[matrix.rooms]]
 id = "!roomid:example.com"
 listen = true   # receive TTS responses from this room
-send = true     # send STT messages to this room
+send = true     # send STT transcriptions to this room
 
 [audio]
 input_device = "default"
 output_device = "default"
-wake_word_model = "hey_roger.rpw"  # rustpotter model file
+wake_word_model = "models/roger.rpw"
+input = true    # set false for output-only (speaker) nodes
+output = true   # set false for input-only (microphone) nodes
 
 [stt]
-model = "base.en"          # whisper model name
+# Primary: speaches server (OpenAI-compatible /v1/audio/transcriptions)
+server_url = "http://192.168.1.11:8000"
+server_model = "Systran/faster-distil-whisper-small.en"
+local_fallback = true   # fall back to local whisper if server unreachable
+# Local fallback model (download with: wget -O models/ggml-base.en.bin <huggingface url>)
+model = "base.en"
 model_path = "models/"
-# server_url = "http://192.168.1.100:8080"  # optional: offload whisper to a remote server (saves RAM on Pi)
 
 [tts]
-provider = "piper"          # "piper" or "elevenlabs"
+# Primary: speaches server (Kokoro neural TTS via /v1/audio/speech)
+provider = "speaches"
+server_url = "http://192.168.1.11:8000"
+server_model = "speaches-ai/Kokoro-82M-v1.0-ONNX"
+server_voice = "am_michael"   # see /v1/models for full voice list
+local_fallback = true         # fall back to piper if server unreachable
+# Local fallback (piper must be installed and voice .onnx downloaded)
 piper_binary = "/usr/bin/piper"
 piper_voice = "en_US-ryan-medium.onnx"
 
-[tts.elevenlabs]
-api_key = ""
-voice_id = ""
+# Uncomment to use ElevenLabs instead of speaches for TTS:
+# [tts]
+# provider = "elevenlabs"
+# [tts.elevenlabs]
+# api_key = ""
+# voice_id = ""

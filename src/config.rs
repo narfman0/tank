@@ -36,19 +36,46 @@ pub struct AudioConfig {
     #[serde(default = "default_device")]
     pub output_device: String,
     pub wake_word_model: String,
+    #[serde(default = "default_true")]
+    pub input: bool,
+    #[serde(default = "default_true")]
+    pub output: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SttConfig {
+    /// Local whisper model name (used when server is absent or as fallback)
+    #[serde(default = "default_stt_model")]
     pub model: String,
+    /// Directory containing `<model>.bin` for local whisper
+    #[serde(default = "default_model_path")]
     pub model_path: String,
+    /// Speaches (or compatible) server URL, e.g. "http://192.168.1.11:8000"
     pub server_url: Option<String>,
+    /// ASR model name to request from the server
+    #[serde(default = "default_stt_server_model")]
+    pub server_model: String,
+    /// Fall back to local whisper if the server is unreachable
+    #[serde(default = "default_true")]
+    pub local_fallback: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct TtsConfig {
+    /// "speaches", "piper", or "elevenlabs"
     #[serde(default = "default_tts_provider")]
     pub provider: String,
+    /// Speaches server URL (used when provider = "speaches")
+    pub server_url: Option<String>,
+    /// TTS model on the speaches server
+    #[serde(default = "default_tts_server_model")]
+    pub server_model: String,
+    /// Voice ID on the speaches server (Kokoro voice name)
+    #[serde(default = "default_tts_server_voice")]
+    pub server_voice: String,
+    /// Fall back to piper if speaches server is unreachable
+    #[serde(default = "default_true")]
+    pub local_fallback: bool,
     pub piper_binary: Option<String>,
     pub piper_voice: Option<String>,
     pub elevenlabs: Option<ElevenLabsConfig>,
@@ -68,13 +95,14 @@ pub struct Session {
     pub homeserver: String,
 }
 
-fn default_device() -> String {
-    "default".to_string()
-}
-
-fn default_tts_provider() -> String {
-    "piper".to_string()
-}
+fn default_device() -> String { "default".to_string() }
+fn default_true() -> bool { true }
+fn default_stt_model() -> String { "base.en".to_string() }
+fn default_model_path() -> String { "models/".to_string() }
+fn default_stt_server_model() -> String { "Systran/faster-distil-whisper-small.en".to_string() }
+fn default_tts_provider() -> String { "speaches".to_string() }
+fn default_tts_server_model() -> String { "speaches-ai/Kokoro-82M-v1.0-ONNX".to_string() }
+fn default_tts_server_voice() -> String { "am_michael".to_string() }
 
 impl Config {
     pub fn load(path: &Path) -> Result<Self> {

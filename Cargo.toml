@@ -7,13 +7,17 @@ edition = "2021"
 name = "tank"
 path = "src/main.rs"
 
+[[bin]]
+name = "build-wakeword"
+path = "src/bin/build_wakeword.rs"
+
 [dependencies]
 matrix-sdk = { version = "0.7", features = ["sqlite"] }
 cpal = "0.15"
 # rustpotter = "3"  # blocked: rustpotter 3.x -> candle-core 0.2.2 has rand 0.8/0.9 conflict
 #                    # restore when rustpotter upgrades candle-core to >=0.7
 whisper-rs = "0.11"
-rodio = "0.19"
+rodio = { version = "0.19", features = ["mp3"] }
 reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
@@ -23,3 +27,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde_json = "1"
 tempfile = "3"
+rustpotter = { git = "https://github.com/GiviMAD/rustpotter", tag = "v2.0.0", version = "2.0.0" }
