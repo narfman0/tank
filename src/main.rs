@@ -1,9 +1,4 @@
-mod audio;
-mod config;
-mod matrix;
-mod stt;
-mod tts;
-mod wake_word;
+use tank::{audio, config, matrix, stt, tts, wake_word, wizard};
 
 use anyhow::{Context, Result};
 use cpal::traits::DeviceTrait;
@@ -16,23 +11,29 @@ use tracing::info;
 use config::Config;
 
 #[derive(Debug)]
-struct Args {
-    config_path: PathBuf,
+enum Command {
+    Run { config_path: PathBuf },
+    Wizard { out_path: PathBuf },
 }
 
-impl Args {
+impl Command {
     fn parse() -> Self {
-        let mut args = std::env::args().skip(1);
+        let mut argv = std::env::args().skip(1).peekable();
+        if argv.peek().map(|s| s == "wizard").unwrap_or(false) {
+            argv.next();
+            let out_path = argv.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("config.toml"));
+            return Command::Wizard { out_path };
+        }
         let mut config_path = None;
-        while let Some(arg) = args.next() {
+        while let Some(arg) = argv.next() {
             match arg.as_str() {
                 "--config" | "-c" => {
-                    config_path = args.next().map(PathBuf::from);
+                    config_path = argv.next().map(PathBuf::from);
                 }
                 _ => {}
             }
         }
-        Self {
+        Command::Run {
             config_path: config_path.unwrap_or_else(|| PathBuf::from("config.toml")),
         }
     }
@@ -47,15 +48,25 @@ async fn main() -> Result<()> {
         )
         .init();
 
-    let args = Args::parse();
-    let config_dir = args
-        .config_path
+    let config_path = match Command::parse() {
+        Command::Wizard { out_path } => return wizard::run(out_path).await,
+        Command::Run { config_path } => config_path,
+    };
+    let config_dir = config_path
         .parent()
         .unwrap_or(Path::new("."))
         .to_path_buf();
 
-    info!("loading config from {}", args.config_path.display());
-    let config = Arc::new(Config::load(&args.config_path).context("failed to load config")?);
+    info!("loading config from {}", config_path.display());
+    let config = Arc::new(Config::load(&config_path).context("failed to load config")?);
+
+    let do_input = config.audio.input;
+    let do_output = config.audio.output;
+
+    if !do_input && !do_output {
+        tracing::warn!("both input and output are disabled — nothing to do, exiting");
+        return Ok(());
+    }
 
     // Matrix client setup
     let store_path = config_dir.join("matrix-store");
@@ -72,88 +83,141 @@ async fn main() -> Result<()> {
         .await
         .context("matrix authentication failed")?;
 
-    // Channel for Matrix → main loop (TTS responses)
+    // Channel for Matrix → main loop (TTS responses); only used when output is enabled
     let (response_tx, mut response_rx) = mpsc::channel::<String>(32);
-    matrix
-        .start_sync(response_tx)
-        .await
-        .context("failed to start matrix sync")?;
+    if do_output {
+        matrix
+            .start_sync(response_tx)
+            .await
+            .context("failed to start matrix sync")?;
+    }
 
-    // Audio setup
-    let audio = audio::AudioCapture::new();
-    let input_device = audio.input_device(&config.audio.input_device)?;
-    info!(
-        "using input device: {}",
-        input_device.name().unwrap_or_default()
-    );
+    // Input-side setup (wake word + STT)
+    let audio;
+    let input_device;
+    let mut wake_word;
+    let stt;
 
-    // Wake word detector
-    let wake_model_path = PathBuf::from(&config.audio.wake_word_model);
-    let mut wake_word = wake_word::WakeWordDetector::new(&wake_model_path)
-        .context("failed to load wake word model")?;
+    if do_input {
+        audio = Some(audio::AudioCapture::new());
+        let dev = audio.as_ref().unwrap().input_device(&config.audio.input_device)?;
+        info!("using input device: {}", dev.name().unwrap_or_default());
 
-    // STT engine
-    let stt = stt::SttEngine::new(&config.stt).context("failed to initialize STT engine")?;
+        let wake_model_path = PathBuf::from(&config.audio.wake_word_model);
+        wake_word = Some(
+            wake_word::WakeWordDetector::new(&wake_model_path)
+                .context("failed to load wake word model")?,
+        );
 
-    // TTS engine
-    let tts = tts::TtsEngine::new(config.tts.clone(), config.audio.output_device.clone());
+        stt = Some(
+            stt::SttEngine::new(&config.stt).context("failed to initialize STT engine")?,
+        );
 
-    info!("tank ready, listening for wake word...");
+        input_device = Some(dev);
+    } else {
+        audio = None;
+        input_device = None;
+        wake_word = None;
+        stt = None;
+    }
+
+    // Output-side setup (TTS)
+    let tts = if do_output {
+        Some(tts::TtsEngine::new(
+            config.tts.clone(),
+            config.audio.output_device.clone(),
+        ))
+    } else {
+        None
+    };
+
+    match (do_input, do_output) {
+        (true, _) => info!("tank ready, listening for wake word..."),
+        (false, true) => info!("tank ready in output-only mode, listening on Matrix..."),
+        _ => unreachable!(),
+    }
 
     // Main loop
     loop {
-        // 1. Listen for wake word on a 30ms audio frame
-        let wake_chunk = capture_short_chunk(&input_device)?;
-        if !wake_word.process_chunk(&wake_chunk) {
-            continue;
-        }
+        if do_input {
+            let dev = input_device.as_ref().unwrap();
+            let ww = wake_word.as_mut().unwrap();
+            let stt_engine = stt.as_ref().unwrap();
+            let audio_cap = audio.as_ref().unwrap();
 
-        info!("wake word detected, recording...");
-
-        // 2. Record utterance until silence
-        let samples = audio
-            .record_until_silence(&input_device, Duration::from_secs(2))
-            .await?;
-
-        if samples.is_empty() {
-            continue;
-        }
-
-        // 3. STT
-        let transcript = match stt.transcribe(&samples) {
-            Ok(t) if !t.is_empty() => t,
-            Ok(_) => {
-                info!("empty transcription, ignoring");
+            // 1. Listen for wake word on a 30ms audio frame
+            let wake_chunk = capture_short_chunk(dev)?;
+            if !ww.process_chunk(&wake_chunk) {
                 continue;
             }
-            Err(e) => {
-                tracing::error!("STT error: {}", e);
+
+            info!("wake word detected, recording...");
+
+            // 2. Record utterance until silence
+            let samples = audio_cap
+                .record_until_silence(dev, Duration::from_secs(2))
+                .await?;
+
+            if samples.is_empty() {
                 continue;
             }
-        };
-        info!("transcribed: {}", transcript);
 
-        // 4. Send to Matrix
-        if let Err(e) = matrix.send_message(&transcript).await {
-            tracing::error!("failed to send message: {}", e);
-        }
+            // 3. STT
+            let transcript = match stt_engine.transcribe(&samples) {
+                Ok(t) if !t.is_empty() => t,
+                Ok(_) => {
+                    info!("empty transcription, ignoring");
+                    continue;
+                }
+                Err(e) => {
+                    tracing::error!("STT error: {}", e);
+                    continue;
+                }
+            };
+            info!("transcribed: {}", transcript);
 
-        // 5. Wait for response (with timeout)
-        let response = tokio::time::timeout(Duration::from_secs(30), response_rx.recv()).await;
-        match response {
-            Ok(Some(text)) => {
-                info!("response: {}", text);
-                // 6. TTS playback
-                if let Err(e) = tts.speak(&text).await {
-                    tracing::error!("TTS error: {}", e);
+            // 4. Send to Matrix
+            if let Err(e) = matrix.send_message(&transcript).await {
+                tracing::error!("failed to send message: {}", e);
+            }
+
+            if !do_output {
+                // Input-only: nothing more to do for this utterance
+                continue;
+            }
+
+            // 5. Wait for response (with timeout)
+            let response =
+                tokio::time::timeout(Duration::from_secs(30), response_rx.recv()).await;
+            match response {
+                Ok(Some(text)) => {
+                    info!("response: {}", text);
+                    // 6. TTS playback
+                    if let Err(e) = tts.as_ref().unwrap().speak(&text).await {
+                        tracing::error!("TTS error: {}", e);
+                    }
+                }
+                Ok(None) => {
+                    tracing::warn!("response channel closed");
+                    break;
+                }
+                Err(_) => {
+                    tracing::warn!("timeout waiting for response");
                 }
             }
-            Ok(None) => {
-                tracing::warn!("response channel closed");
-                break;
-            }
-            Err(_) => {
-                tracing::warn!("timeout waiting for response");
+        } else {
+            // Output-only: just wait for Matrix messages and speak them
+            match response_rx.recv().await {
+                Some(text) => {
+                    info!("received: {}", text);
+                    if let Err(e) = tts.as_ref().unwrap().speak(&text).await {
+                        tracing::error!("TTS error: {}", e);
+                    }
+                }
+                None => {
+                    tracing::warn!("response channel closed");
+                    break;
+                }
             }
         }
     }

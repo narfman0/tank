@@ -40,7 +40,9 @@ wget -O models/base.en.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/
 | `matrix.rooms[].send` | Send STT transcriptions to this room |
 | `audio.input_device` | CPAL input device name, or `"default"` |
 | `audio.output_device` | CPAL output device name, or `"default"` |
-| `audio.wake_word_model` | Path to wake word model file (currently unused; energy VAD is active) |
+| `audio.wake_word_model` | Path to `.rpw` wake word model file |
+| `audio.input` | Enable microphone/wake-word/STT pipeline (default `true`; set `false` for speaker-only nodes) |
+| `audio.output` | Enable TTS/Matrix-response pipeline (default `true`; set `false` for mic-only nodes) |
 | `stt.model` | Whisper model name (e.g. `base.en`) |
 | `stt.model_path` | Directory containing `<model>.bin` |
 | `tts.provider` | `"piper"` or `"elevenlabs"` |
@@ -51,9 +53,19 @@ wget -O models/base.en.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/
 
 ## Wake word
 
-Currently uses energy-threshold VAD (any loud sound triggers recording) because `rustpotter 3.x` has a transitive dependency conflict via `candle-core`. The `wake_word_model` config field is reserved for when that dep is resolved or an alternative library is wired in.
+Wake word detection uses **rustpotter v2**, loaded from git (`tag = "v2.0.0"`) because v2 was yanked from crates.io. Model files use the `.rpw` format.
 
-To adjust sensitivity, the threshold is set in `src/wake_word.rs` (`threshold: 0.02`). Lower = more sensitive.
+**Creating a model:**
+
+- Install `rustpotter-cli` (the v2 branch) and record several WAV samples of your wake phrase, then build:
+  ```sh
+  rustpotter-cli build-wakeword --name "hey-tank" --samples hey1.wav hey2.wav hey3.wav -o hey-tank.rpw
+  ```
+- Alternatively, use the rustpotter v2 Rust API directly to construct a `Wakeword` from WAV samples and save it.
+
+Set `audio.wake_word_model` in `config.toml` to the path of your `.rpw` file.
+
+**rustpotter v3 remains blocked** — `rustpotter 3.x` pulls in `candle-core 0.2.2`, which has an unresolved `rand 0.8`/`0.9` transitive dependency conflict.
 
 ## License
 

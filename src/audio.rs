@@ -41,6 +41,72 @@ impl AudioCapture {
         }
     }
 
+    /// Names of all available input (capture) devices.
+    pub fn list_input_devices(&self) -> Result<Vec<String>> {
+        Ok(self
+            .host
+            .input_devices()?
+            .filter_map(|d| d.name().ok())
+            .collect())
+    }
+
+    /// Names of all available output (playback) devices.
+    pub fn list_output_devices(&self) -> Result<Vec<String>> {
+        Ok(self
+            .host
+            .output_devices()?
+            .filter_map(|d| d.name().ok())
+            .collect())
+    }
+
+    /// Capture from `device` for `duration` and return the peak absolute
+    /// amplitude (0.0–1.0). Used by the config wizard to confirm the mic works.
+    pub fn capture_peak(&self, device: &Device, duration: Duration) -> Result<f32> {
+        let config = device.default_input_config()?;
+
+        let peak: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
+        let peak_clone = peak.clone();
+
+        let stream = match config.sample_format() {
+            SampleFormat::F32 => {
+                let cfg: StreamConfig = config.into();
+                device.build_input_stream(
+                    &cfg,
+                    move |data: &[f32], _| {
+                        let mut p = peak_clone.lock().unwrap();
+                        for &s in data {
+                            *p = p.max(s.abs());
+                        }
+                    },
+                    |e| tracing::error!("input stream error: {}", e),
+                    None,
+                )?
+            }
+            SampleFormat::I16 => {
+                let cfg: StreamConfig = config.into();
+                device.build_input_stream(
+                    &cfg,
+                    move |data: &[i16], _| {
+                        let mut p = peak_clone.lock().unwrap();
+                        for &s in data {
+                            *p = p.max((s as f32 / i16::MAX as f32).abs());
+                        }
+                    },
+                    |e| tracing::error!("input stream error: {}", e),
+                    None,
+                )?
+            }
+            _ => anyhow::bail!("unsupported sample format"),
+        };
+
+        stream.play()?;
+        std::thread::sleep(duration);
+        drop(stream);
+
+        let result = *peak.lock().unwrap();
+        Ok(result)
+    }
+
     /// Record audio until silence is detected, return raw f32 samples at 16kHz.
     pub async fn record_until_silence(
         &self,
