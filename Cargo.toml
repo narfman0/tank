@@ -17,6 +17,7 @@ path = "src/lib.rs"
 
 [dependencies]
 matrix-sdk = { version = "0.7", features = ["sqlite"] }
+rusqlite = { version = "0.30", features = ["bundled"] }
 cpal = "0.15"
 # rustpotter = "3"  # blocked: rustpotter 3.x -> candle-core 0.2.2 has rand 0.8/0.9 conflict
 #                    # restore when rustpotter upgrades candle-core to >=0.7
