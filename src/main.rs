@@ -57,6 +57,11 @@ async fn main() -> Result<()> {
         .unwrap_or(Path::new("."))
         .to_path_buf();
 
+    if !config_path.exists() {
+        eprintln!("No config found at '{}'. Launching setup wizard...\n", config_path.display());
+        wizard::run(config_path.clone()).await?;
+    }
+
     info!("loading config from {}", config_path.display());
     let config = Arc::new(Config::load(&config_path).context("failed to load config")?);
 
