@@ -14,15 +14,24 @@ use config::Config;
 enum Command {
     Run { config_path: PathBuf },
     Wizard { out_path: PathBuf },
+    GenerateConfig { out_path: PathBuf },
 }
 
 impl Command {
     fn parse() -> Self {
         let mut argv = std::env::args().skip(1).peekable();
-        if argv.peek().map(|s| s == "wizard").unwrap_or(false) {
-            argv.next();
-            let out_path = argv.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("config.toml"));
-            return Command::Wizard { out_path };
+        match argv.peek().map(|s| s.as_str()) {
+            Some("wizard") => {
+                argv.next();
+                let out_path = argv.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("config.toml"));
+                return Command::Wizard { out_path };
+            }
+            Some("generate-config") => {
+                argv.next();
+                let out_path = argv.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("config.toml"));
+                return Command::GenerateConfig { out_path };
+            }
+            _ => {}
         }
         let mut config_path = None;
         while let Some(arg) = argv.next() {
@@ -50,6 +59,16 @@ async fn main() -> Result<()> {
 
     let config_path = match Command::parse() {
         Command::Wizard { out_path } => return wizard::run(out_path).await,
+        Command::GenerateConfig { out_path } => {
+            if out_path.exists() {
+                eprintln!("'{}' already exists, not overwriting. Delete it first or specify a different path.", out_path.display());
+                std::process::exit(1);
+            }
+            std::fs::write(&out_path, include_str!("../config.example.toml"))
+                .with_context(|| format!("failed to write {}", out_path.display()))?;
+            println!("Wrote default config to '{}'. Edit it, then run: tank --config {}", out_path.display(), out_path.display());
+            return Ok(());
+        }
         Command::Run { config_path } => config_path,
     };
     let config_dir = config_path
@@ -58,8 +77,10 @@ async fn main() -> Result<()> {
         .to_path_buf();
 
     if !config_path.exists() {
-        eprintln!("No config found at '{}'. Launching setup wizard...\n", config_path.display());
-        wizard::run(config_path.clone()).await?;
+        eprintln!("No config found at '{}'.", config_path.display());
+        eprintln!("  Generate a default:  tank generate-config");
+        eprintln!("  Interactive wizard:  tank wizard");
+        std::process::exit(1);
     }
 
     info!("loading config from {}", config_path.display());
