@@ -79,6 +79,31 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
 
+  dev-release:
+    if: github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Update dev release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev
+          name: "dev (latest master)"
+          prerelease: true
+          make_latest: false
+          body: "Automated build from the latest commit on master."
+          files: |
+            tank-linux-x86_64
+            tank-windows-x86_64.exe
+
   release:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
