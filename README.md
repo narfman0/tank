@@ -4,6 +4,12 @@ A Matrix voice terminal: speak → wake word → STT → Matrix message → rece
 
 You talk to it, it sends your words as a Matrix message, waits for a reply from a bot, and reads the reply aloud.
 
+## Quick install (Linux)
+
+```sh
+curl -fsSL https://github.com/narfman0/tank/releases/download/dev/tank-linux-x86_64 -o tank && chmod +x tank && ./tank wizard
+```
+
 ## Requirements
 
 - Rust 1.75+
