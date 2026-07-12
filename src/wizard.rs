@@ -100,7 +100,14 @@ async fn step_matrix(a: &mut Answers) -> Result<()> {
                 return Ok(());
             }
             Err(e) => {
-                println!("\x1b[31mfailed\x1b[0m: {}", e);
+                println!("\x1b[31mfailed\x1b[0m");
+                for (i, cause) in e.chain().enumerate() {
+                    if i == 0 {
+                        println!("  \x1b[31m✗\x1b[0m {}", cause);
+                    } else {
+                        println!("    caused by: {}", cause);
+                    }
+                }
                 if !yes_no("Try again?", true) {
                     anyhow::bail!("matrix login aborted");
                 }
@@ -114,14 +121,14 @@ async fn matrix_login(homeserver: &str, username: &str, password: &str) -> Resul
         .homeserver_url(homeserver)
         .build()
         .await
-        .context("failed to build client")?;
+        .with_context(|| format!("could not reach homeserver '{}'", homeserver))?;
     client
         .matrix_auth()
         .login_username(username, password)
         .initial_device_display_name("tank-wizard")
         .send()
         .await
-        .context("login rejected")?;
+        .with_context(|| format!("login failed for '{}' on '{}'", username, homeserver))?;
     Ok(client)
 }
 
@@ -218,7 +225,14 @@ async fn step_stt(a: &mut Answers) -> Result<()> {
         match http_ok(&client, &format!("{}/health", base)).await {
             Ok(()) => println!("\x1b[32mhealthy\x1b[0m"),
             Err(e) => {
-                println!("\x1b[31munreachable\x1b[0m: {}", e);
+                println!("\x1b[31munreachable\x1b[0m");
+                for (i, cause) in e.chain().enumerate() {
+                    if i == 0 {
+                        println!("  \x1b[31m✗\x1b[0m {}", cause);
+                    } else {
+                        println!("    caused by: {}", cause);
+                    }
+                }
                 if yes_no("Retry with a different URL?", true) {
                     continue;
                 }
@@ -294,7 +308,13 @@ async fn step_tts(a: &mut Answers) -> Result<()> {
         io::stdout().flush().ok();
         match synth_and_play(&client, &base, &a.tts_model, &a.tts_voice, &a.output_device).await {
             Ok(()) => println!("\x1b[32mplayed\x1b[0m"),
-            Err(e) => println!("\x1b[31mfailed\x1b[0m: {}", e),
+            Err(e) => {
+                println!("\x1b[31mfailed\x1b[0m");
+                for (i, cause) in e.chain().enumerate() {
+                    if i == 0 { println!("  \x1b[31m✗\x1b[0m {}", cause); }
+                    else { println!("    caused by: {}", cause); }
+                }
+            }
         }
     }
     println!("  \x1b[32m✓\x1b[0m TTS → {} / {}", a.tts_model, a.tts_voice);
